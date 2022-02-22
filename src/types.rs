@@ -1,4 +1,4 @@
-use log::{warn};
+use log::warn;
 use serde::{Deserialize, Serialize};
 use subprocess::{CaptureData, Exec, Result as PopenResult};
 
@@ -25,7 +25,7 @@ impl Stats {
             zt_ip: wrap(get_zt_ip()),
             wan_ip: wrap(get_wan_ip()),
             holoport_id: Some("Holoport_ID".to_owned()),
-            timestamp: Some(128397),
+            timestamp: None,
         }
     }
 }
@@ -35,43 +35,50 @@ type ExecResult = (&'static str, PopenResult<CaptureData>);
 fn get_network() -> ExecResult {
     (
         "holo_network",
-        (Exec::shell("echo 'abba'") | Exec::shell("grep oo")).capture(),
+        (Exec::shell("nixos-option system.holoNetwork") | Exec::shell("sed -n '2 p'")).capture(),
     )
 }
 
 fn get_channel() -> ExecResult {
-  (
-      "channel",
-      (Exec::shell("echo 'abba'") | Exec::shell("grep oo")).capture(),
-  )
+    (
+        "channel",
+        (Exec::shell("nix-channel --list")
+            | Exec::shell("grep holo-nixpkgs")
+            | Exec::shell("cut -d '/' -f 7"))
+        .capture(),
+    )
 }
 
 fn get_model() -> ExecResult {
-  (
-      "model",
-      (Exec::shell("echo 'abba'") | Exec::shell("grep oo")).capture(),
-  )
+    (
+        "model",
+        (Exec::shell("nixos-option system.hpos.target 2>/dev/null") | Exec::shell("sed -n '2 p'"))
+            .capture(),
+    )
 }
 
 fn get_ssh_status() -> ExecResult {
-  (
-      "ssh_status",
-      (Exec::shell("echo 'false'") | Exec::shell("grep false")).capture(),
-  )
+    (
+        "ssh_status",
+        (Exec::shell("nixos-option profiles.development.enabl 2>/dev/null")
+            | Exec::shell("sed -n '2 p'")
+            | Exec::shell("grep true || echo 'false'"))
+        .capture(),
+    )
 }
 
 fn get_zt_ip() -> ExecResult {
-  (
-      "zt_ip",
-      (Exec::shell("echo 'abba'") | Exec::shell("grep oo")).capture(),
-  )
+    (
+        "zt_ip",
+        (Exec::shell("zerotier-cli listnetworks") | Exec::shell("sed -n '2 p'") | Exec::shell("awk -F ' ' '{print $NF}'") | Exec::shell("awk -F ',' '{print $NF}'") | Exec::shell("awk -F '/' '{print $1}'")).capture(),
+    )
 }
 
 fn get_wan_ip() -> ExecResult {
-  (
-      "wan_ip",
-      (Exec::shell("echo 'abba'") | Exec::shell("grep oo")).capture(),
-  )
+    (
+        "wan_ip",
+        Exec::shell("curl -s https://ipecho.net/plain").capture(),
+    )
 }
 
 /// Return stdout of a capture(), in case of a failure in execution or non-zero
@@ -80,7 +87,7 @@ fn wrap(res: ExecResult) -> Option<String> {
     match res.1 {
         Ok(data) => {
             if data.success() {
-                return Some(data.stdout_str());
+                return Some(data.stdout_str().trim().trim_matches('"').to_owned());
             } else {
                 warn!("Failed to get {}, {}", res.0, data.stderr_str());
                 return None;
@@ -94,10 +101,10 @@ fn wrap(res: ExecResult) -> Option<String> {
 }
 
 fn string_2_bool(val: Option<String>) -> Option<bool> {
-  if let Some(str) = val {
-    if let Ok(res) = &str.trim().parse::<bool>() {
-      return Some(*res)
+    if let Some(str) = val {
+        if let Ok(res) = &str.trim().parse::<bool>() {
+            return Some(*res);
+        }
     }
-  }
-  None
+    None
 }
