@@ -1,15 +1,103 @@
+use log::{warn};
 use serde::{Deserialize, Serialize};
+use subprocess::{CaptureData, Exec, Result as PopenResult};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct Payload {
-    holo_network: Option(String),
-    channel: Option(String),
-    model: Option(String),
-    ssh_status: Option(bool),
-    holo_network: Option(String),
-    zt_ip: Option(String),
-    wan_ip: Option(String),
-    holoport_id: Option(String),
-    timestamp: Option(u32)
+pub struct Stats {
+    holo_network: Option<String>,
+    channel: Option<String>,
+    model: Option<String>,
+    ssh_status: Option<bool>,
+    zt_ip: Option<String>,
+    wan_ip: Option<String>,
+    holoport_id: Option<String>,
+    timestamp: Option<u32>,
+}
+
+impl Stats {
+    pub fn new() -> Self {
+        Self {
+            holo_network: wrap(get_network()),
+            channel: wrap(get_channel()),
+            model: wrap(get_model()),
+            ssh_status: string_2_bool(wrap(get_ssh_status())),
+            zt_ip: wrap(get_zt_ip()),
+            wan_ip: wrap(get_wan_ip()),
+            holoport_id: Some("Holoport_ID".to_owned()),
+            timestamp: Some(128397),
+        }
+    }
+}
+
+type ExecResult = (&'static str, PopenResult<CaptureData>);
+
+fn get_network() -> ExecResult {
+    (
+        "holo_network",
+        (Exec::shell("echo 'abba'") | Exec::shell("grep oo")).capture(),
+    )
+}
+
+fn get_channel() -> ExecResult {
+  (
+      "channel",
+      (Exec::shell("echo 'abba'") | Exec::shell("grep oo")).capture(),
+  )
+}
+
+fn get_model() -> ExecResult {
+  (
+      "model",
+      (Exec::shell("echo 'abba'") | Exec::shell("grep oo")).capture(),
+  )
+}
+
+fn get_ssh_status() -> ExecResult {
+  (
+      "ssh_status",
+      (Exec::shell("echo 'false'") | Exec::shell("grep false")).capture(),
+  )
+}
+
+fn get_zt_ip() -> ExecResult {
+  (
+      "zt_ip",
+      (Exec::shell("echo 'abba'") | Exec::shell("grep oo")).capture(),
+  )
+}
+
+fn get_wan_ip() -> ExecResult {
+  (
+      "wan_ip",
+      (Exec::shell("echo 'abba'") | Exec::shell("grep oo")).capture(),
+  )
+}
+
+/// Return stdout of a capture(), in case of a failure in execution or non-zero
+/// exit status log error and return Null
+fn wrap(res: ExecResult) -> Option<String> {
+    match res.1 {
+        Ok(data) => {
+            if data.success() {
+                return Some(data.stdout_str());
+            } else {
+                warn!("Failed to get {}, {}", res.0, data.stderr_str());
+                return None;
+            }
+        }
+        Err(_) => {
+            warn!("Failed to get {}", res.0);
+            return None;
+        }
+    };
+}
+
+fn string_2_bool(val: Option<String>) -> Option<bool> {
+  if let Some(str) = val {
+    if let Ok(res) = &str.trim().parse::<bool>() {
+      return Some(*res)
+    }
+  }
+  None
 }
