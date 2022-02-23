@@ -1,5 +1,6 @@
 use crate::stats::Stats;
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result};
+use base64::encode_config;
 use ed25519_dalek::*;
 use hpos_config_core::{public_key::to_base36_id, Config};
 use serde_json;
@@ -21,16 +22,22 @@ impl Keys {
         })
     }
 
-    pub async fn sign(&self, payload: &Stats) -> Result<Signature> {
-        self.keypair
+    pub async fn sign(&self, payload: &Stats) -> Result<String> {
+        let signature = self
+            .keypair
             .try_sign(&payload.into_bytes()?)
-            .context("Failed to sign payload")
+            .context("Failed to sign payload")?;
+        Ok(encode_config(
+            &signature.to_bytes()[..],
+            base64::STANDARD_NO_PAD,
+        ))
     }
 }
 
 async fn keypair_from_config() -> Result<Keypair> {
     let config_path = "/Users/pj/Downloads/hp-primary-4syce.json"; // TODO: "/run/hpos-init/hp-*.json"
-    let password = env::var("DEVICE_SEED_DEFAULT_PASSWORD").context("Cannot read bundle password from env var")?;
+    let password = env::var("DEVICE_SEED_DEFAULT_PASSWORD")
+        .context("Cannot read bundle password from env var")?;
 
     let config_file =
         File::open(&config_path).context(format!("Failed to open config file {}", config_path))?;
@@ -41,7 +48,6 @@ async fn keypair_from_config() -> Result<Keypair> {
             config_path
         )),
         Config::V2 { device_bundle, .. } => {
-            // FIXME: ugly as hell
             hpos_config_seed_bundle_explorer::unlock(&device_bundle, Some(password))
                 .await
                 .context(format!(
