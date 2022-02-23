@@ -1,3 +1,4 @@
+use anyhow::{Context, Result};
 use log::warn;
 use serde::{Deserialize, Serialize};
 use subprocess::{CaptureData, Exec, Result as PopenResult};
@@ -16,7 +17,7 @@ pub struct Stats {
 }
 
 impl Stats {
-    pub fn new() -> Self {
+    pub fn new(pubkey_base36: &str) -> Self {
         Self {
             holo_network: wrap(get_network()),
             channel: wrap(get_channel()),
@@ -24,9 +25,13 @@ impl Stats {
             ssh_status: string_2_bool(wrap(get_ssh_status())),
             zt_ip: wrap(get_zt_ip()),
             wan_ip: wrap(get_wan_ip()),
-            holoport_id: Some("Holoport_ID".to_owned()),
+            holoport_id: Some(pubkey_base36.to_owned()),
             timestamp: None,
         }
+    }
+
+    pub fn into_bytes(&self) -> Result<Vec<u8>> {
+        serde_json::to_vec(&self).context("Failed to convert payload to bytes")
     }
 }
 
@@ -70,7 +75,12 @@ fn get_ssh_status() -> ExecResult {
 fn get_zt_ip() -> ExecResult {
     (
         "zt_ip",
-        (Exec::shell("zerotier-cli listnetworks") | Exec::shell("sed -n '2 p'") | Exec::shell("awk -F ' ' '{print $NF}'") | Exec::shell("awk -F ',' '{print $NF}'") | Exec::shell("awk -F '/' '{print $1}'")).capture(),
+        (Exec::shell("zerotier-cli listnetworks")
+            | Exec::shell("sed -n '2 p'")
+            | Exec::shell("awk -F ' ' '{print $NF}'")
+            | Exec::shell("awk -F ',' '{print $NF}'")
+            | Exec::shell("awk -F '/' '{print $1}'"))
+        .capture(),
     )
 }
 
@@ -81,8 +91,8 @@ fn get_wan_ip() -> ExecResult {
     )
 }
 
-/// Return stdout of a capture(), in case of a failure in execution or non-zero
-/// exit status log error and return Null
+/// Return stdout of capture(), in case of a failure in execution or
+/// non-zero exit status log error and return None
 fn wrap(res: ExecResult) -> Option<String> {
     match res.1 {
         Ok(data) => {
@@ -100,6 +110,7 @@ fn wrap(res: ExecResult) -> Option<String> {
     };
 }
 
+/// Parses String looking for false or true
 fn string_2_bool(val: Option<String>) -> Option<bool> {
     if let Some(str) = val {
         if let Ok(res) = &str.trim().parse::<bool>() {
