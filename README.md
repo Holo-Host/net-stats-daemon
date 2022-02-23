@@ -15,3 +15,11 @@ Currently script is collecting following information:
 ```
 
 Once collected payload is signed with holoport's private key and sent to `match-service-api`.
+
+### Prerequisites
+
+Location of an `hpos-config.toml` file is hard-coded in `keypair.rs` module. Binary needs an env var `DEVICE_SEED_DEFAULT_PASSWORD` for unlocking this file.
+
+### Debugging
+
+`export RUST_LOG=DEBUG; cargo run` for debugging info.
