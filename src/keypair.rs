@@ -35,7 +35,7 @@ impl Keys {
 }
 
 async fn keypair_from_config() -> Result<Keypair> {
-    let config_path = "/Users/pj/Downloads/hp-primary-4syce.json"; // TODO: "/run/hpos-init/hp-*.json"
+    let config_path = "/run/hpos-init/hp-*.json";
     let password = env::var("DEVICE_SEED_DEFAULT_PASSWORD")
         .context("Cannot read bundle password from env var")?;
 
