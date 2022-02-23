@@ -1,11 +1,11 @@
 mod keypair;
-pub mod types;
+pub mod stats;
 
 use anyhow::Result;
 use env_logger;
 use keypair::Keys;
 use log::info;
-use types::Stats;
+use stats::Stats;
 
 #[tokio::main]
 async fn main() -> Result<()> {

@@ -1,4 +1,4 @@
-use crate::types::Stats;
+use crate::stats::Stats;
 use anyhow::{bail, Context, Result};
 use ed25519_dalek::*;
 use hpos_config_core::{public_key::to_base36_id, Config};
