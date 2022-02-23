@@ -3,6 +3,7 @@ use anyhow::{bail, Context, Result};
 use ed25519_dalek::*;
 use hpos_config_core::{public_key::to_base36_id, Config};
 use serde_json;
+use std::env;
 use std::fs::File;
 
 pub struct Keys {
@@ -28,8 +29,8 @@ impl Keys {
 }
 
 async fn keypair_from_config() -> Result<Keypair> {
-    let config_path = "/a/b/c/config.toml";
-    let password = "pass".to_owned();
+    let config_path = "/Users/pj/Downloads/hp-primary-4syce.json"; // TODO: "/run/hpos-init/hp-*.json"
+    let password = env::var("DEVICE_SEED_DEFAULT_PASSWORD").context("Cannot read bundle password from env var")?;
 
     let config_file =
         File::open(&config_path).context(format!("Failed to open config file {}", config_path))?;
@@ -47,9 +48,6 @@ async fn keypair_from_config() -> Result<Keypair> {
                     "Unable to unlock the device bundle from {}",
                     config_path
                 ))
-        }
-        _ => {
-            bail!("Wrong config version in {}", config_path)
         }
     }
 }
