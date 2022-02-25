@@ -8,7 +8,7 @@ use subprocess::{CaptureData, Exec, Result as PopenResult};
 pub struct Stats {
     holo_network: Option<String>,
     channel: Option<String>,
-    model: Option<String>,
+    holoport_model: Option<String>,
     ssh_status: Option<bool>,
     zt_ip: Option<String>,
     wan_ip: Option<String>,
@@ -21,7 +21,7 @@ impl Stats {
         Self {
             holo_network: wrap(get_network()),
             channel: wrap(get_channel()),
-            model: wrap(get_model()),
+            holoport_model: wrap(get_holoport_model()),
             ssh_status: string_2_bool(wrap(get_ssh_status())),
             zt_ip: wrap(get_zt_ip()),
             wan_ip: wrap(get_wan_ip()),
@@ -54,9 +54,9 @@ fn get_channel() -> ExecResult {
     )
 }
 
-fn get_model() -> ExecResult {
+fn get_holoport_model() -> ExecResult {
     (
-        "model",
+        "holoport_model",
         (Exec::shell("nixos-option system.hpos.target 2>/dev/null") | Exec::shell("sed -n '2 p'"))
             .capture(),
     )
@@ -91,8 +91,9 @@ fn get_wan_ip() -> ExecResult {
     )
 }
 
-/// Return stdout of capture(), in case of a failure in execution or
-/// non-zero exit status log error and return None
+/// Function parses result of Exec.capture()
+/// In case of a failure in execution or non-zero exit status
+/// logs an error and returns None, otherwise returns Some(stdout)
 fn wrap(res: ExecResult) -> Option<String> {
     match res.1 {
         Ok(data) => {
