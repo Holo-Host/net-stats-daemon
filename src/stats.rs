@@ -104,8 +104,8 @@ fn wrap(res: ExecResult) -> Option<String> {
                 return None;
             }
         }
-        Err(_) => {
-            warn!("Failed to get {}", res.0);
+        Err(e) => {
+            warn!("Failed to get {}: {:?}", res.0, e);
             return None;
         }
     };
