@@ -65,7 +65,7 @@ fn get_holoport_model() -> ExecResult {
 fn get_ssh_status() -> ExecResult {
     (
         "ssh_status",
-        (Exec::shell("nixos-option profiles.development.enabl 2>/dev/null")
+        (Exec::shell("nixos-option profiles.development.enable 2>/dev/null")
             | Exec::shell("sed -n '2 p'")
             | Exec::shell("grep true || echo 'false'"))
         .capture(),
