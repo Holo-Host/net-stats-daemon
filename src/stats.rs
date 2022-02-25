@@ -40,16 +40,14 @@ type ExecResult = (&'static str, PopenResult<CaptureData>);
 fn get_network() -> ExecResult {
     (
         "holo_network",
-        (Exec::shell("nixos-option system.holoNetwork") | Exec::shell("sed -n '2 p'")).capture(),
+        (Exec::shell("nixos-option system.holoNetwork")).capture(),
     )
 }
 
 fn get_channel() -> ExecResult {
     (
         "channel",
-        (Exec::shell("nix-channel --list")
-            | Exec::shell("grep holo-nixpkgs")
-            | Exec::shell("cut -d '/' -f 7"))
+        (Exec::shell("nix-channel --list"))
         .capture(),
     )
 }
@@ -57,7 +55,7 @@ fn get_channel() -> ExecResult {
 fn get_holoport_model() -> ExecResult {
     (
         "holoport_model",
-        (Exec::shell("nixos-option system.hpos.target 2>/dev/null") | Exec::shell("sed -n '2 p'"))
+        (Exec::shell("nixos-option system.hpos.target"))
             .capture(),
     )
 }
@@ -65,7 +63,7 @@ fn get_holoport_model() -> ExecResult {
 fn get_ssh_status() -> ExecResult {
     (
         "ssh_status",
-        (Exec::shell("nixos-option profiles.development.enabl 2>/dev/null")
+        (Exec::shell("nixos-option profiles.development.enable 2>/dev/null")
             | Exec::shell("sed -n '2 p'")
             | Exec::shell("grep true || echo 'false'"))
         .capture(),
