@@ -23,3 +23,7 @@ Location of an `hpos-config.toml` file is hard-coded in `keypair.rs` module. Bin
 ### Debugging
 
 `export RUST_LOG=DEBUG; cargo run` for debugging info.
+
+### Decision log
+
+Decisions made around architecture and functionality are saved in `docs` folder.
