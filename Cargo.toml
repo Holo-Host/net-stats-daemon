@@ -14,6 +14,14 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 subprocess = "0.2.8"
 tokio = { version = "1.12.0", features = ["rt-multi-thread", "macros"] }
+tracing = { version = "0.1", features = ["attributes"] }
+holochain = {version = "0.0.126", default-features = false}
+holochain_types = "0.0.26"
+holochain_websocket = "0.0.26"
+holo_hash = "=0.0.19"
+holochain_zome_types = "0.0.24"
+hdk_derive = "0.0.24"
+url = "2.2"
 
 [dependencies.hpos-config-core]
 git = "https://github.com/Holo-Host/hpos-config"

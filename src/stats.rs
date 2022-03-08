@@ -1,7 +1,12 @@
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
+use holochain::conductor::api::AppStatusFilter;
+use holochain_types::app::InstalledAppId;
 use log::warn;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use subprocess::{CaptureData, Exec, Result as PopenResult};
+
+use super::websocket::{AdminWebsocket, AppWebsocket};
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -14,6 +19,11 @@ pub struct Stats {
     wan_ip: Option<String>,
     holoport_id: Option<String>,
     timestamp: Option<u32>,
+    hpos_app_health_map: HashMap<InstalledAppId, AppStatusFilter>,
+    // running_read_only_happs: Vec<HeaderHash>
+    // running_sl_cells: Vec<InstalledAppId>
+    // installed_app_map: HashMap<InstalledAppId, i32>
+    // running_core_happs: Vec<InstalledAppId>
 }
 
 impl Stats {
@@ -27,6 +37,11 @@ impl Stats {
             wan_ip: wrap(get_wan_ip()),
             holoport_id: Some(pubkey_base36.to_owned()),
             timestamp: None,
+            hpos_app_health_map: get_hosted_app_health(),
+            // running_read_only_happs: get_running_read_only_happs(),
+            // running_sl_cells: get_running_sl_cells(),
+            // installed_app_map: HashMap<InstalledAppId, i32>,
+            // running_core_happs: get_running_core_happs()
         }
     }
 
@@ -36,6 +51,33 @@ impl Stats {
 }
 
 type ExecResult = (&'static str, PopenResult<CaptureData>);
+
+async fn get_hpos_app_health() -> Result<HashMap<InstalledAppId, AppStatusFilter>> {
+    let admin_port = 4444; // env::var("ADMIN_PORT")
+    let mut admin_websocket = AdminWebsocket::connect(admin_port)
+        .await
+        .context("Failed to connect to the holochain admin interface.")?;
+
+    let hpos_happs = admin_websocket.list_active_happs().await?;
+    let hpos_happ_health_map = HashMap::new();
+    if let response = hpos_happs.iter().filter_map(|happ| {
+        hpos_app_health_map.insert(happ.app_id, happ.status);
+        ok()
+    }) {
+        match response {
+            Some(Ok) => {
+                println!(">>>>>>>>>>> HPOS APP HEATH map : ", hpos_app_health_map);
+                return Ok(hpos_app_health_map);
+            }
+            None => {
+                return Err(anyhow!(
+                    "No hpos happs found.  Result returned: {:?}",
+                    response
+                ))
+            }
+        }
+    }
+}
 
 fn get_network() -> ExecResult {
     (

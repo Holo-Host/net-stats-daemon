@@ -1,5 +1,6 @@
 mod keypair;
 pub mod stats;
+pub mod websocket;
 
 use anyhow::Result;
 use env_logger;
