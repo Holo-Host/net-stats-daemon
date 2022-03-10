@@ -1,16 +1,17 @@
 use anyhow::{anyhow, Context, Result};
 use holochain::conductor::api::{
-    AdminRequest, AdminResponse, AppRequest, AppResponse, AppStatusFilter, ZomeCall,
+    AdminRequest, AdminResponse, AppRequest, AppResponse, AppStatusFilter, InstalledAppInfo,
+    ZomeCall,
 };
 
-use holochain_types::{app::InstalledAppId, dna::AgentPubKey};
+use holochain_types::dna::AgentPubKey;
 use holochain_websocket::{connect, WebsocketConfig, WebsocketSender};
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
 use tracing::{instrument, trace};
 use url::Url;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct AdminWebsocket {
     tx: WebsocketSender,
     agent_key: Option<AgentPubKey>,
@@ -34,10 +35,13 @@ impl AdminWebsocket {
     }
 
     #[instrument(skip(self), err)]
-    pub async fn list_active_happs(&mut self) -> Result<Vec<InstalledAppId>> {
-        let response = self.send(AdminRequest::ListEnabledApps).await?;
+    pub async fn list_apps(
+        &mut self,
+        status_filter: Option<AppStatusFilter>,
+    ) -> Result<Vec<InstalledAppInfo>> {
+        let response = self.send(AdminRequest::ListApps { status_filter }).await?;
         match response {
-            AdminResponse::EnabledAppsListed(app_ids) => Ok(app_ids),
+            AdminResponse::AppsListed(apps_infos) => Ok(apps_infos),
             _ => Err(anyhow!("unexpected response: {:?}", response)),
         }
     }
@@ -78,7 +82,7 @@ impl AppWebsocket {
         Ok(Self { tx })
     }
 
-    #[instrument(skip(self))]
+    #[instrument(skip(self), err)]
     pub async fn zome_call(&mut self, msg: ZomeCall) -> Result<AppResponse> {
         let app_request = AppRequest::ZomeCall(Box::new(msg));
         let response = self.send(app_request).await;

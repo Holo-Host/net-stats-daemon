@@ -1,12 +1,20 @@
 use anyhow::{anyhow, Context, Result};
-use holochain::conductor::api::AppStatusFilter;
-use holochain_types::app::InstalledAppId;
+use holochain::conductor::api::{AppStatusFilter, InstalledAppInfo, InstalledAppInfoStatus};
+use holochain_types::{app::InstalledAppId, prelude::HeaderHash};
 use log::warn;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use subprocess::{CaptureData, Exec, Result as PopenResult};
 
 use super::websocket::{AdminWebsocket, AppWebsocket};
+
+const ADMIN_PORT: u16 = 4444;
+
+pub struct EnabledAppStats {
+    read_only: Vec<HeaderHash>,
+    sl: Vec<InstalledAppId>,
+    core: Vec<InstalledAppId>,
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -20,14 +28,15 @@ pub struct Stats {
     holoport_id: Option<String>,
     timestamp: Option<u32>,
     hpos_app_health_map: HashMap<InstalledAppId, AppStatusFilter>,
-    // running_read_only_happs: Vec<HeaderHash>
-    // running_sl_cells: Vec<InstalledAppId>
+    running_read_only_happs: Vec<HeaderHash>,
+    running_sl_cells: Vec<InstalledAppId>,
+    running_core_happs: Vec<InstalledAppId>,
     // installed_app_map: HashMap<InstalledAppId, i32>
-    // running_core_happs: Vec<InstalledAppId>
 }
 
 impl Stats {
-    pub fn new(pubkey_base36: &str) -> Self {
+    pub async fn new(pubkey_base36: &str) -> Self {
+        let running_apps = get_running_apps().await.unwrap();
         Self {
             holo_network: wrap(get_network()),
             channel: wrap(get_channel()),
@@ -37,11 +46,11 @@ impl Stats {
             wan_ip: wrap(get_wan_ip()),
             holoport_id: Some(pubkey_base36.to_owned()),
             timestamp: None,
-            hpos_app_health_map: get_hosted_app_health(),
-            // running_read_only_happs: get_running_read_only_happs(),
-            // running_sl_cells: get_running_sl_cells(),
+            hpos_app_health_map: get_hpos_app_health().await.unwrap(),
+            running_read_only_happs: running_apps.read_only,
+            running_sl_cells: running_apps.sl,
+            running_core_happs: running_apps.core,
             // installed_app_map: HashMap<InstalledAppId, i32>,
-            // running_core_happs: get_running_core_happs()
         }
     }
 
@@ -53,31 +62,55 @@ impl Stats {
 type ExecResult = (&'static str, PopenResult<CaptureData>);
 
 async fn get_hpos_app_health() -> Result<HashMap<InstalledAppId, AppStatusFilter>> {
-    let admin_port = 4444; // env::var("ADMIN_PORT")
-    let mut admin_websocket = AdminWebsocket::connect(admin_port)
+    let mut admin_websocket = AdminWebsocket::connect(ADMIN_PORT)
         .await
         .context("Failed to connect to the holochain admin interface.")?;
 
-    let hpos_happs = admin_websocket.list_active_happs().await?;
-    let hpos_happ_health_map = HashMap::new();
-    if let response = hpos_happs.iter().filter_map(|happ| {
-        hpos_app_health_map.insert(happ.app_id, happ.status);
-        ok()
-    }) {
-        match response {
-            Some(Ok) => {
-                println!(">>>>>>>>>>> HPOS APP HEATH map : ", hpos_app_health_map);
-                return Ok(hpos_app_health_map);
-            }
-            None => {
-                return Err(anyhow!(
-                    "No hpos happs found.  Result returned: {:?}",
-                    response
-                ))
-            }
-        }
-    }
+    let mut hpos_happ_health_map = HashMap::new();
+    match admin_websocket.list_apps(None).await {
+        Ok(hpos_happs) => hpos_happs.iter().for_each(|happ| {
+            let happ_status = match &happ.status {
+                InstalledAppInfoStatus::Paused { .. } => AppStatusFilter::Paused,
+                InstalledAppInfoStatus::Disabled { .. } => AppStatusFilter::Disabled,
+                InstalledAppInfoStatus::Running => AppStatusFilter::Running,
+            };
+            println!(">>>>>>>>>>> happ_status : {:?} ", happ_status);
+            hpos_happ_health_map.insert(happ.installed_app_id.clone(), happ_status);
+        }),
+        Err(e) => return Err(anyhow!("Error calling `admin/list_apps`. {:?}", e)),
+    };
+
+    println!(
+        ">>>>>>>>>>> HPOS APP HEATH map : {:?} ",
+        hpos_happ_health_map
+    );
+    Ok(hpos_happ_health_map)
 }
+
+// async fn running_read_only_happs() -> Result<Vec<HeaderHash>> {}
+
+// async fn running_sl_cells() -> Result<Vec<InstalledAppId>> {}
+
+// async fn running_core_happs() -> Result<Vec<InstalledAppId>> {}
+
+async fn get_running_apps() -> Result<EnabledAppStats> {
+    let mut admin_websocket = AdminWebsocket::connect(ADMIN_PORT)
+        .await
+        .context("Failed to connect to the holochain admin interface.")?;
+
+    let read_only = Vec::new();
+    let sl = Vec::new();
+    let core = Vec::new();
+
+    match admin_websocket.list_apps(AppStatusFilter::Running).await {
+        Ok(hpos_happs) => hpos_happs.iter().for_each(|happ| {
+            read_only = happ.installed_app_id.filter_map(|id| -> )
+        }),
+        Err(e) => return Err(anyhow!("Error calling `admin/list_apps`. {:?}", e)),
+    };
+}
+
+async fn installed_app_map() -> Result<HashMap<InstalledAppId, i32>> {}
 
 fn get_network() -> ExecResult {
     (

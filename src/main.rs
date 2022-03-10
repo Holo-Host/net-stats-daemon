@@ -16,7 +16,7 @@ async fn main() -> Result<()> {
     let hpos_key = Keys::new().await?;
 
     info!("Collecting payload from holoport");
-    let payload = Stats::new(&hpos_key.pubkey_base36);
+    let payload = Stats::new(&hpos_key.pubkey_base36).await;
     debug!("Payload: '{:?}'", &payload);
 
     let signature = hpos_key.sign(&payload).await?;
