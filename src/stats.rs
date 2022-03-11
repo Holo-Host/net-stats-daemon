@@ -10,9 +10,9 @@ use subprocess::{CaptureData, Exec, Result as PopenResult};
 use super::app_health;
 
 pub struct EnabledAppStats {
-    pub read_only: Vec<InstalledAppId>,
-    pub sl: Vec<InstalledAppId>,
-    pub core: Vec<InstalledAppId>,
+    pub read_only: Option<Vec<InstalledAppId>>,
+    pub sl: Option<Vec<InstalledAppId>>,
+    pub core: Option<Vec<InstalledAppId>>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -26,16 +26,16 @@ pub struct Stats {
     wan_ip: Option<String>,
     holoport_id: Option<String>,
     timestamp: Option<u32>,
-    hpos_app_health_map: HashMap<InstalledAppId, AppStatusFilter>,
-    running_read_only_happs: Vec<InstalledAppId>,
-    running_sl_cells: Vec<InstalledAppId>,
-    running_core_happs: Vec<InstalledAppId>,
-    installed_app_map: HashMap<WrappedHeaderHash, i32>,
+    hpos_app_health_map: Option<HashMap<InstalledAppId, AppStatusFilter>>,
+    running_read_only_happs: Option<Vec<InstalledAppId>>,
+    running_sl_cells: Option<Vec<InstalledAppId>>,
+    running_core_happs: Option<Vec<InstalledAppId>>,
+    installed_app_map: Option<HashMap<WrappedHeaderHash, i32>>,
 }
 
 impl Stats {
     pub async fn new(pubkey_base36: &str, core_hha_id: InstalledAppId) -> Self {
-        let running_apps = get_running_apps().await.unwrap();
+        let running_apps = get_running_apps().await;
         Self {
             holo_network: wrap(get_network()),
             channel: wrap(get_channel()),
@@ -45,11 +45,11 @@ impl Stats {
             wan_ip: wrap(get_wan_ip()),
             holoport_id: Some(pubkey_base36.to_owned()),
             timestamp: None,
-            hpos_app_health_map: get_hpos_app_health().await.unwrap(),
+            hpos_app_health_map: get_hpos_app_health().await,
             running_read_only_happs: running_apps.read_only,
             running_sl_cells: running_apps.sl,
             running_core_happs: running_apps.core,
-            installed_app_map: get_installed_app_map(core_hha_id).await.unwrap(),
+            installed_app_map: get_installed_app_map(core_hha_id).await,
         }
     }
 
@@ -60,18 +60,40 @@ impl Stats {
 
 type ExecResult = (&'static str, PopenResult<CaptureData>);
 
-async fn get_hpos_app_health() -> Result<HashMap<InstalledAppId, AppStatusFilter>> {
-    app_health::get_hpos_app_health().await
+async fn get_hpos_app_health() -> Option<HashMap<InstalledAppId, AppStatusFilter>> {
+    match app_health::get_hpos_app_health().await {
+        Ok(data) => Some(data),
+        Err(e) => {
+            warn!("Failed when calling `get_hpos_app_health`: {:?}", e);
+            return None;
+        }
+    }
 }
 
-async fn get_running_apps() -> Result<EnabledAppStats> {
-    app_health::get_running_apps().await
+async fn get_running_apps() -> EnabledAppStats {
+    match app_health::get_running_apps().await {
+        Ok(data) => data,
+        Err(e) => {
+            warn!("Failed when calling `get_running_apps`: {:?}", e);
+            return EnabledAppStats {
+                read_only: None,
+                sl: None,
+                core: None,
+            };
+        }
+    }
 }
 
 async fn get_installed_app_map(
     core_hha_id: InstalledAppId,
-) -> Result<HashMap<WrappedHeaderHash, i32>> {
-    app_health::get_installed_app_map(core_hha_id).await
+) -> Option<HashMap<WrappedHeaderHash, i32>> {
+    match app_health::get_installed_app_map(core_hha_id).await {
+        Ok(data) => Some(data),
+        Err(e) => {
+            warn!("Failed when calling `get_installed_app_map`: {:?}", e);
+            return None;
+        }
+    }
 }
 
 fn get_network() -> ExecResult {

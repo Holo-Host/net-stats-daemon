@@ -61,9 +61,9 @@ pub async fn get_running_apps() -> Result<EnabledAppStats> {
             });
 
             return Ok(EnabledAppStats {
-                read_only,
-                sl,
-                core,
+                read_only: Some(read_only),
+                sl: Some(sl),
+                core: Some(core),
             });
         }
         Err(e) => return Err(anyhow!("Error calling `admin/list_apps`. {:?}", e)),
