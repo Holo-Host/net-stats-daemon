@@ -3,7 +3,6 @@ use super::stats::EnabledAppStats;
 use super::websocket::{AdminWebsocket, AppWebsocket};
 
 use anyhow::{anyhow, Context, Result};
-use hc_utils::WrappedHeaderHash;
 use holochain::conductor::api::{AppStatusFilter, InstalledAppInfoStatus};
 use holochain_types::app::InstalledAppId;
 use std::collections::HashMap;
@@ -72,7 +71,7 @@ pub async fn get_running_apps() -> Result<EnabledAppStats> {
 
 pub async fn get_installed_app_map(
     core_hha_id: InstalledAppId,
-) -> Result<HashMap<WrappedHeaderHash, i32>> {
+) -> Result<HashMap<InstalledAppId, i32>> {
     let mut installed_app_map = HashMap::new();
 
     let app_websocket = AppWebsocket::connect(APP_PORT)
@@ -81,7 +80,7 @@ pub async fn get_installed_app_map(
 
     let hha_happ_ids = get_all_hha_happs(app_websocket, core_hha_id).await.unwrap();
     for hha_happ_id in hha_happ_ids.clone() {
-        installed_app_map.insert(hha_happ_id.clone(), 0);
+        installed_app_map.insert(hha_happ_id.0.to_string(), 0);
     }
 
     let mut admin_websocket = AdminWebsocket::connect(ADMIN_PORT)
@@ -100,7 +99,9 @@ pub async fn get_installed_app_map(
                             .contains(&format!("{:?}", id))
                             .to_owned()
                     })
-                    .unwrap();
+                    .unwrap()
+                    .0
+                    .to_string();
 
                 if let Some(v) = installed_app_map.get_mut(&happ_id) {
                     let new_value = *v;

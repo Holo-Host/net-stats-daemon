@@ -1,5 +1,4 @@
 use anyhow::{Context, Result};
-use hc_utils::WrappedHeaderHash;
 use holochain::conductor::api::AppStatusFilter;
 use holochain_types::app::InstalledAppId;
 use log::warn;
@@ -28,9 +27,9 @@ pub struct Stats {
     timestamp: Option<u32>,
     hpos_app_health_map: Option<HashMap<InstalledAppId, AppStatusFilter>>,
     running_read_only_happs: Option<Vec<InstalledAppId>>,
-    running_sl_cells: Option<Vec<InstalledAppId>>,
+    running_sl_happs: Option<Vec<InstalledAppId>>,
     running_core_happs: Option<Vec<InstalledAppId>>,
-    installed_app_map: Option<HashMap<WrappedHeaderHash, i32>>,
+    installed_app_map: Option<HashMap<InstalledAppId, i32>>,
 }
 
 impl Stats {
@@ -47,7 +46,7 @@ impl Stats {
             timestamp: None,
             hpos_app_health_map: get_hpos_app_health().await,
             running_read_only_happs: running_apps.read_only,
-            running_sl_cells: running_apps.sl,
+            running_sl_happs: running_apps.sl,
             running_core_happs: running_apps.core,
             installed_app_map: get_installed_app_map(core_hha_id).await,
         }
@@ -86,7 +85,7 @@ async fn get_running_apps() -> EnabledAppStats {
 
 async fn get_installed_app_map(
     core_hha_id: InstalledAppId,
-) -> Option<HashMap<WrappedHeaderHash, i32>> {
+) -> Option<HashMap<InstalledAppId, i32>> {
     match app_health::get_installed_app_map(core_hha_id).await {
         Ok(data) => Some(data),
         Err(e) => {
