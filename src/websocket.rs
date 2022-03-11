@@ -4,7 +4,7 @@ use holochain::conductor::api::{
     ZomeCall,
 };
 
-use holochain_types::dna::AgentPubKey;
+use holochain_types::{app::InstalledAppId, dna::AgentPubKey};
 use holochain_websocket::{connect, WebsocketConfig, WebsocketSender};
 use std::sync::Arc;
 
@@ -87,6 +87,18 @@ impl AppWebsocket {
         let app_request = AppRequest::ZomeCall(Box::new(msg));
         let response = self.send(app_request).await;
         response
+    }
+
+    #[instrument(skip(self))]
+    pub async fn get_app_info(&mut self, app_id: InstalledAppId) -> Option<InstalledAppInfo> {
+        let msg = AppRequest::AppInfo {
+            installed_app_id: app_id,
+        };
+        let response = self.send(msg).await.ok()?;
+        match response {
+            AppResponse::AppInfo(app_info) => app_info,
+            _ => None,
+        }
     }
 
     #[instrument(skip(self))]
