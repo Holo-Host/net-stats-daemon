@@ -1,3 +1,4 @@
+pub mod app_health;
 pub mod config;
 mod keypair;
 pub mod stats;

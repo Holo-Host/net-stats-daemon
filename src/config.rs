@@ -134,11 +134,7 @@ pub async fn get_all_hha_happs(
     core_hha_id: InstalledAppId,
 ) -> Result<Vec<WrappedHeaderHash>> {
     match app_websocket.get_app_info(core_hha_id).await {
-        Some(InstalledAppInfo {
-            // This works on the assumption that the core happs has HHA in the first position of the vec
-            cell_data,
-            ..
-        }) => {
+        Some(InstalledAppInfo { cell_data, .. }) => {
             let zome_call_payload = ZomeCall {
                 cell_id: cell_data[0].as_id().clone(),
                 zome_name: ZomeName::from("hha"),
