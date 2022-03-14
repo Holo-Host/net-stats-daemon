@@ -25,7 +25,9 @@ pub struct Stats {
     wan_ip: Option<String>,
     holoport_id: Option<String>,
     timestamp: Option<u32>,
+    // either
     hpos_app_health_map: Option<HashMap<InstalledAppId, AppStatusFilter>>,
+    // or
     running_read_only_happs: Option<Vec<InstalledAppId>>,
     running_sl_happs: Option<Vec<InstalledAppId>>,
     running_core_happs: Option<Vec<InstalledAppId>>,
@@ -33,7 +35,7 @@ pub struct Stats {
 }
 
 impl Stats {
-    pub async fn new(pubkey_base36: &str, core_hha_id: InstalledAppId) -> Self {
+    pub async fn new(pubkey_base36: &str, core_hha_id: Option<InstalledAppId>) -> Self {
         let running_apps = get_running_apps().await;
         Self {
             holo_network: wrap(get_network()),
@@ -48,7 +50,10 @@ impl Stats {
             running_read_only_happs: running_apps.read_only,
             running_sl_happs: running_apps.sl,
             running_core_happs: running_apps.core,
-            installed_app_map: get_installed_app_map(core_hha_id).await,
+            installed_app_map: match core_hha_id {
+                Some(core_hha_id) => get_installed_app_map(core_hha_id).await,
+                None => None,
+            },
         }
     }
 

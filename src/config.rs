@@ -3,13 +3,12 @@
 #![allow(clippy::unit_arg)]
 use super::websocket::AppWebsocket;
 
+use log::{debug, info};
 use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
 use serde::Deserialize;
 use std::{env, path::PathBuf};
-use structopt::StructOpt;
-use tracing::{debug, info, instrument};
 use url::Url;
 
 use hc_utils::{WrappedAgentPubKey, WrappedHeaderHash};
@@ -20,13 +19,11 @@ use holochain_types::prelude::{zome_io::ExternIO, FunctionName, ZomeName};
 
 use holofuel_types::fuel::Fuel;
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug)]
 pub struct Config {
     /// Holochain conductor port
-    #[structopt(long, env, default_value = "4444")]
     pub admin_port: u16,
     /// hApp listening port
-    #[structopt(long, env, default_value = "42233")]
     pub happ_port: u16,
     /// Path to a YAML file containing the lists of hApps to install
     pub happs_file_path: PathBuf,
@@ -120,7 +117,7 @@ pub struct HappsFile {
 }
 
 impl HappsFile {
-    pub fn core_app(self) -> Option<Happ> {
+    pub fn find_core_app(self) -> Option<Happ> {
         let core_app = &self
             .core_happs
             .into_iter()
@@ -159,13 +156,11 @@ pub async fn get_all_hha_happs(
     }
 }
 
-#[instrument(err, fields(path = %path.as_ref().display()))]
 pub fn load_happ_file(path: impl AsRef<Path>) -> Result<HappsFile> {
     use std::fs::File;
-
     let file = File::open(path).context("failed to open file")?;
     let happ_file =
         serde_yaml::from_reader(&file).context("failed to deserialize YAML as HappsFile")?;
-    debug!(?happ_file);
+    debug!("YAML Happs File: {:?}", happ_file);
     Ok(happ_file)
 }

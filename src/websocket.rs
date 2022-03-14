@@ -8,7 +8,7 @@ use holochain_types::{app::InstalledAppId, dna::AgentPubKey};
 use holochain_websocket::{connect, WebsocketConfig, WebsocketSender};
 use std::sync::Arc;
 
-use tracing::{instrument, trace};
+use log::{debug, info};
 use url::Url;
 
 #[derive(Clone, Debug)]
@@ -18,23 +18,24 @@ pub struct AdminWebsocket {
 }
 
 impl AdminWebsocket {
-    #[instrument(err)]
     pub async fn connect(admin_port: u16) -> Result<Self> {
         let url = format!("ws://localhost:{}/", admin_port);
+        debug!("Connecting to Conductor Admin Interface at: {:?}", url);
         let url = Url::parse(&url).context("invalid ws:// URL")?;
         let websocket_config = Arc::new(WebsocketConfig::default());
         let (tx, _rx) = again::retry(|| {
             let websocket_config = Arc::clone(&websocket_config);
             connect(url.clone().into(), websocket_config)
         })
-        .await?;
+        .await
+        .or_else(|err| anyhow!("Unable to connect to conductor admin interface: {:?}", err));
+
         Ok(Self {
             tx,
             agent_key: None,
         })
     }
 
-    #[instrument(skip(self), err)]
     pub async fn list_apps(
         &mut self,
         status_filter: Option<AppStatusFilter>,
@@ -46,17 +47,16 @@ impl AdminWebsocket {
         }
     }
 
-    #[instrument(skip(self))]
     async fn send(&mut self, msg: AdminRequest) -> Result<AdminResponse> {
         let response = self
             .tx
-            .request(msg)
+            .request(&msg)
             .await
             .context("failed to send message")?;
         match response {
             AdminResponse::Error(error) => Err(anyhow!("error: {:?}", error)),
             _ => {
-                trace!("send successful");
+                info!("Successful admin request for message {:?} : ", msg);
                 Ok(response)
             }
         }
@@ -69,27 +69,28 @@ pub struct AppWebsocket {
 }
 
 impl AppWebsocket {
-    #[instrument(err)]
     pub async fn connect(app_port: u16) -> Result<Self> {
         let url = format!("ws://localhost:{}/", app_port);
         let url = Url::parse(&url).context("invalid ws:// URL")?;
         let websocket_config = Arc::new(WebsocketConfig::default());
-        let (tx, _rx) = again::retry(|| {
+        let (tx, _rx) = match again::retry(|| {
             let websocket_config = Arc::clone(&websocket_config);
             connect(url.clone().into(), websocket_config)
         })
-        .await?;
+        .await
+        {
+            Ok(data) => Ok(data),
+            Err(e) => Err(e),
+        };
         Ok(Self { tx })
     }
 
-    #[instrument(skip(self), err)]
     pub async fn zome_call(&mut self, msg: ZomeCall) -> Result<AppResponse> {
         let app_request = AppRequest::ZomeCall(Box::new(msg));
         let response = self.send(app_request).await;
         response
     }
 
-    #[instrument(skip(self))]
     pub async fn get_app_info(&mut self, app_id: InstalledAppId) -> Option<InstalledAppInfo> {
         let msg = AppRequest::AppInfo {
             installed_app_id: app_id,
@@ -101,17 +102,16 @@ impl AppWebsocket {
         }
     }
 
-    #[instrument(skip(self))]
     async fn send(&mut self, msg: AppRequest) -> Result<AppResponse> {
         let response = self
             .tx
-            .request(msg)
+            .request(msg.clone())
             .await
             .context("failed to send message")?;
         match response {
             AppResponse::Error(error) => Err(anyhow!("error: {:?}", error)),
             _ => {
-                trace!("send successful");
+                info!("Successful app request for message {:?} : ", msg);
                 Ok(response)
             }
         }

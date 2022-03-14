@@ -22,25 +22,30 @@ async fn main() -> Result<()> {
     info!("Collecting core apps from holoport config");
     let config = Config::load();
     let happ_file = load_happ_file(&config.happs_file_path)?;
-    let core_happs = happ_file.core_app().unwrap();
-    if core_happs.id().contains("core-app") {
-        info!("Collecting payload from holoport");
-        let payload = Stats::new(&hpos_key.pubkey_base36, core_happs.id()).await;
-        debug!("Payload: '{:?}'", &payload);
+    let core_happ_id = match happ_file.find_core_app() {
+        Some(core_happ) => Some(core_happ.id()),
+        None => {
+            // throw warning -> cannot find core happ (hha)
+            None
+        }
+    };
 
-        let signature = hpos_key.sign(&payload).await?;
-        debug!("Signature: '{:?}'", &signature);
+    info!("Collecting payload from holoport");
+    let payload = Stats::new(&hpos_key.pubkey_base36, core_happ_id).await;
+    debug!("Payload: '{:?}'", &payload);
 
-        info!("Sending statistics to server");
-        let client = Client::new();
-        let res = client
-            .post("https://network-statistics.holo.host/hosts/stats")
-            .json(&payload)
-            .header("x-hpos-signature", signature)
-            .send()
-            .await?;
+    let signature = hpos_key.sign(&payload).await?;
+    debug!("Signature: '{:?}'", &signature);
 
-        debug!("API response: {:?}", res);
-    }
+    info!("Sending statistics to server");
+    let client = Client::new();
+    let res = client
+        .post("https://network-statistics.holo.host/hosts/stats")
+        .json(&payload)
+        .header("x-hpos-signature", signature)
+        .send()
+        .await?;
+
+    debug!("API response: {:?}", res);
     Ok(())
 }
