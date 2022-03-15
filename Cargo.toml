@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
+again = "0.1"
 anyhow = "1.0"
 base64 = "0.13.0"
 ed25519-dalek = { version = "1.0.0-pre.1" }
@@ -14,6 +15,10 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 subprocess = "0.2.8"
 tokio = { version = "1.12.0", features = ["rt-multi-thread", "macros"] }
+holochain = {version = "0.0.126", default-features = false}
+holochain_types = "0.0.26"
+holochain_websocket = "0.0.26"
+url = "2.2"
 
 [dependencies.hpos-config-core]
 git = "https://github.com/Holo-Host/hpos-config"

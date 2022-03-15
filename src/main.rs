@@ -1,5 +1,7 @@
+pub mod app_health;
 mod keypair;
 pub mod stats;
+pub mod websocket;
 
 use anyhow::Result;
 use env_logger;
@@ -15,7 +17,7 @@ async fn main() -> Result<()> {
     let hpos_key = Keys::new().await?;
 
     info!("Collecting payload from holoport");
-    let payload = Stats::new(&hpos_key.pubkey_base36);
+    let payload = Stats::new(&hpos_key.pubkey_base36).await;
     debug!("Payload: '{:?}'", &payload);
 
     let signature = hpos_key.sign(&payload).await?;
