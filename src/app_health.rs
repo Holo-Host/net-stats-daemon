@@ -6,7 +6,6 @@ use anyhow::{anyhow, Context, Result};
 use holochain::conductor::api::{AppStatusFilter, InstalledAppInfoStatus};
 use holochain_types::app::InstalledAppId;
 use std::collections::HashMap;
-use std::env;
 
 const ADMIN_PORT: u16 = 4444;
 const APP_PORT: u16 = 42233;
