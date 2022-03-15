@@ -23,17 +23,18 @@ impl AdminWebsocket {
         debug!("Connecting to Conductor Admin Interface at: {:?}", url);
         let url = Url::parse(&url).context("invalid ws:// URL")?;
         let websocket_config = Arc::new(WebsocketConfig::default());
-        let (tx, _rx) = again::retry(|| {
+        match again::retry(|| {
             let websocket_config = Arc::clone(&websocket_config);
             connect(url.clone().into(), websocket_config)
         })
         .await
-        .or_else(|err| anyhow!("Unable to connect to conductor admin interface: {:?}", err));
-
-        Ok(Self {
-            tx,
-            agent_key: None,
-        })
+        {
+            Ok((tx, _rx)) => Ok(Self {
+                tx,
+                agent_key: None,
+            }),
+            Err(e) => Err(anyhow!("error: {:?}", e)),
+        }
     }
 
     pub async fn list_apps(
@@ -73,16 +74,15 @@ impl AppWebsocket {
         let url = format!("ws://localhost:{}/", app_port);
         let url = Url::parse(&url).context("invalid ws:// URL")?;
         let websocket_config = Arc::new(WebsocketConfig::default());
-        let (tx, _rx) = match again::retry(|| {
+        match again::retry(|| {
             let websocket_config = Arc::clone(&websocket_config);
             connect(url.clone().into(), websocket_config)
         })
         .await
         {
-            Ok(data) => Ok(data),
-            Err(e) => Err(e),
-        };
-        Ok(Self { tx })
+            Ok((tx, _rx)) => Ok(Self { tx }),
+            Err(e) => Err(anyhow!("error: {:?}", e)),
+        }
     }
 
     pub async fn zome_call(&mut self, msg: ZomeCall) -> Result<AppResponse> {

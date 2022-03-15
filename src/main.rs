@@ -11,7 +11,7 @@ use log::{debug, info};
 use reqwest::Client;
 use stats::Stats;
 
-use config::{load_happ_file, Config};
+use config::{configure_holochain_yaml, load_happ_file};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -20,8 +20,7 @@ async fn main() -> Result<()> {
     let hpos_key = Keys::new().await?;
 
     info!("Collecting core apps from holoport config");
-    let config = Config::load();
-    let happ_file = load_happ_file(&config.happs_file_path)?;
+    let happ_file = load_happ_file(&configure_holochain_yaml())?;
     let core_happ_id = match happ_file.find_core_app() {
         Some(core_happ) => Some(core_happ.id()),
         None => {

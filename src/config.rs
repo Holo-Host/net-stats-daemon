@@ -19,25 +19,12 @@ use holochain_types::prelude::{zome_io::ExternIO, FunctionName, ZomeName};
 
 use holofuel_types::fuel::Fuel;
 
-#[derive(Debug)]
-pub struct Config {
-    /// Holochain conductor port
-    pub admin_port: u16,
-    /// hApp listening port
-    pub happ_port: u16,
-    /// Path to a YAML file containing the lists of hApps to install
-    pub happs_file_path: PathBuf,
-}
-
-impl Config {
-    /// Create Config from CLI arguments with logging
-    pub fn load() -> Self {
-        let config = Config::from_args();
-        debug!(?config, "loaded");
-        config
+pub fn configure_holochain_yaml() -> String {
+    match env::var("CONFIGURE_HOLOCHAIN_YAML_PATH") {
+        Ok(path) => path,
+        _ => "/var/lib/configure-holochain/config.yaml".to_string(),
     }
 }
-
 #[derive(Deserialize, Debug, Clone)]
 pub struct DnaResource {
     pub hash: String, // hash of the dna, not a stored dht address
