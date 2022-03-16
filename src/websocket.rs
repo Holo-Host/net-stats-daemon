@@ -1,7 +1,6 @@
 use anyhow::{anyhow, Context, Result};
 use holochain::conductor::api::{AdminRequest, AdminResponse, AppStatusFilter, InstalledAppInfo};
 
-use holochain_types::dna::AgentPubKey;
 use holochain_websocket::{connect, WebsocketConfig, WebsocketSender};
 use std::sync::Arc;
 
@@ -11,7 +10,6 @@ use url::Url;
 #[derive(Clone, Debug)]
 pub struct AdminWebsocket {
     tx: WebsocketSender,
-    agent_key: Option<AgentPubKey>,
 }
 
 impl AdminWebsocket {
@@ -26,10 +24,7 @@ impl AdminWebsocket {
         })
         .await
         {
-            Ok((tx, _rx)) => Ok(Self {
-                tx,
-                agent_key: None,
-            }),
+            Ok((tx, _rx)) => Ok(Self { tx }),
             Err(e) => Err(anyhow!("error: {:?}", e)),
         }
     }
