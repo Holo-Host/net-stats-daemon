@@ -1,7 +1,12 @@
 use anyhow::{Context, Result};
+use holochain::conductor::api::AppStatusFilter;
+use holochain_types::app::InstalledAppId;
 use log::warn;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use subprocess::{CaptureData, Exec, Result as PopenResult};
+
+use super::app_health;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -14,10 +19,11 @@ pub struct Stats {
     wan_ip: Option<String>,
     holoport_id: Option<String>,
     timestamp: Option<u32>,
+    hpos_app_list: Option<HashMap<InstalledAppId, AppStatusFilter>>,
 }
 
 impl Stats {
-    pub fn new(pubkey_base36: &str) -> Self {
+    pub async fn new(pubkey_base36: &str) -> Self {
         Self {
             holo_network: wrap(get_network()),
             channel: wrap(get_channel()),
@@ -27,6 +33,7 @@ impl Stats {
             wan_ip: wrap(get_wan_ip()),
             holoport_id: Some(pubkey_base36.to_owned()),
             timestamp: None,
+            hpos_app_list: get_hpos_app_health().await,
         }
     }
 
@@ -36,6 +43,16 @@ impl Stats {
 }
 
 type ExecResult = (&'static str, PopenResult<CaptureData>);
+
+async fn get_hpos_app_health() -> Option<HashMap<InstalledAppId, AppStatusFilter>> {
+    match app_health::get_hpos_app_health().await {
+        Ok(data) => Some(data),
+        Err(e) => {
+            warn!("Failed when calling `get_hpos_app_health`: {:?}", e);
+            return None;
+        }
+    }
+}
 
 fn get_network() -> ExecResult {
     (
