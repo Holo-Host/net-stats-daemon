@@ -35,7 +35,9 @@ impl Keys {
 }
 
 async fn keypair_from_config() -> Result<Keypair> {
-    let config_path = "/run/hpos-init/hp-*.json";
+    let config_path =
+        env::var("HPOS_CONFIG_PATH").context("Cannot read HPOS_CONFIG_PATH from env var")?;
+
     let password = env::var("DEVICE_SEED_DEFAULT_PASSWORD")
         .context("Cannot read bundle password from env var")?;
 
