@@ -108,6 +108,18 @@ fn get_wan_ip() -> ExecResult {
     )
 }
 
+fn get_holo_nixpkgs_version() -> Option<String> {
+    let holo_nixpkgs_version_path: &str = "/etc/holo-nixpkgs-version";
+    std::fs::read_to_string(holo_nixpkgs_version_path)
+        .map_err(|e| {
+            warn!(
+                "Failed(`{}`) reading path `{holo_nixpkgs_version_path}`: {e:?}",
+                stringify!(get_holo_nixpkgs_version)
+            )
+        })
+        .ok()
+        .map(|s| s.trim().to_string())
+}
 /// Function parses result of Exec.capture()
 /// In case of a failure in execution or non-zero exit status
 /// logs an error and returns None, otherwise returns Some(stdout)
