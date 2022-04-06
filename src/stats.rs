@@ -117,7 +117,7 @@ fn get_holo_nixpkgs_version() -> Option<String> {
     std::fs::read_to_string(holo_nixpkgs_version_path)
         .map_err(|e| {
             warn!(
-                "Failed(`{}`) reading path `{holo_nixpkgs_version_path}`: {e:?}",
+                "Failed(`{}`) while reading path `{holo_nixpkgs_version_path}`: {e:?}",
                 stringify!(get_holo_nixpkgs_version)
             )
         })
@@ -131,8 +131,8 @@ fn get_holo_nixpkgs_channel_version() -> Option<String> {
             .capture()
             .map_err(|e| {
                 warn!(
-                    "Failed(`{}`) and instantiating `<holo-nixpkgs/.git-version>`: {e:?}",
-                    stringify!(get_holo_nixpkgs_channel_version)
+                    "Failed(`{}`) while instantiating `<holo-nixpkgs/.git-version>`: {e:?}",
+                    stringify!(get_holo_nixpkgs_channel_version) 
                 )
             })
             .ok()
