@@ -3,7 +3,7 @@ use holochain::conductor::api::AppStatusFilter;
 use holochain_types::app::InstalledAppId;
 use log::warn;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 use subprocess::{CaptureData, Exec, Result as PopenResult};
 
 use super::app_health;
@@ -120,6 +120,37 @@ fn get_holo_nixpkgs_version() -> Option<String> {
         .ok()
         .map(|s| s.trim().to_string())
 }
+
+fn get_holo_nixpkgs_channel_version() -> Option<String> {
+    let channel_version_file_path =
+        Exec::shell("nix-instantiate --eval -E '<holo-nixpkgs> + /.git-version'")
+            .capture()
+            .map_err(|e| {
+                warn!(
+                    "Failed(`{}`) and instantiating `<holo-nixpkgs/.git-version>`: {e:?}",
+                    stringify!(get_holo_nixpkgs_channel_version)
+                )
+            })
+            .ok()
+            .filter(|c| c.success())?
+            .stdout_str()
+            .trim()
+            .to_string();
+
+    let channel_version_file_path = PathBuf::from(channel_version_file_path);
+
+    std::fs::read_to_string(&channel_version_file_path)
+        .map_err(|e| {
+            warn!(
+                "Failed(`{}`) while attempting to read path `{}`: {e:?}",
+                stringify!(get_holo_nixpkgs_channel_version),
+                channel_version_file_path.display()
+            )
+        })
+        .ok()
+        .map(|s| s.trim().to_string())
+}
+
 /// Function parses result of Exec.capture()
 /// In case of a failure in execution or non-zero exit status
 /// logs an error and returns None, otherwise returns Some(stdout)
