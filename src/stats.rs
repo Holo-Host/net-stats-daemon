@@ -177,10 +177,7 @@ fn wrap(res: ExecResult) -> Option<String> {
 
 /// Parses String looking for false or true
 fn string_2_bool(val: Option<String>) -> Option<bool> {
-    if let Some(str) = val {
-        if let Ok(res) = &str.trim().parse::<bool>() {
-            return Some(*res);
-        }
+    val.and_then(|str| str.trim().parse::<bool>().ok())
+}
     }
-    None
 }
