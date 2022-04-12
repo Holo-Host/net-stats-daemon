@@ -179,5 +179,3 @@ fn wrap(res: ExecResult) -> Option<String> {
 fn string_2_bool(val: Option<String>) -> Option<bool> {
     val.and_then(|str| str.trim().parse::<bool>().ok())
 }
-    }
-}
