@@ -37,7 +37,7 @@ impl Stats {
             timestamp: None,
             hpos_app_list: get_hpos_app_health().await,
             channel_version: get_holo_nixpkgs_channel_version(),
-            hpos_version: get_holo_nixpkgs_version(),
+            hpos_version: get_hpos_nixpkgs_version(),
         }
     }
 
@@ -112,7 +112,7 @@ fn get_wan_ip() -> ExecResult {
     )
 }
 
-fn get_holo_nixpkgs_version() -> Option<String> {
+fn get_hpos_nixpkgs_version() -> Option<String> {
     let holo_nixpkgs_version_path: &str = "/etc/holo-nixpkgs-version";
     std::fs::read_to_string(holo_nixpkgs_version_path)
         .map_err(|e| {
