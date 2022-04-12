@@ -5,13 +5,15 @@ HPOS daemon for collecting statistics from holoport and PUSHing them to database
 Currently script is collecting following information:
 
 ```
-  Holo Network  # can be one of devNet, alphaNet, flexNet...
-  Channel       # nix-channel that HPOS is following
-  Model         # HP or HP+
-  SSH status    # is SSH enabled?
-  ZT IP         # IP address on Zerotier network
-  IP address    # IPv4 address on internet
-  Holoport ID   # base36 encoded public key of the host
+  Holo Network    # can be one of devNet, alphaNet, flexNet...
+  Channel         # nix-channel that HPOS is following
+  Model           # HP or HP+
+  SSH status      # is SSH enabled?
+  ZT IP           # IP address on Zerotier network
+  IP address      # IPv4 address on internet
+  Holoport ID     # base36 encoded public key of the host
+  ChannelVersion  # The git revision channel that HPOS has downloaded
+  HposVersion     # The git revision that HPOS is currently running
 ```
 
 Once collected payload is signed with holoport's private key and sent to `match-service-api`.
