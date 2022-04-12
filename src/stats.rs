@@ -21,7 +21,7 @@ pub struct Stats {
     timestamp: Option<u32>,
     hpos_app_list: Option<HashMap<InstalledAppId, AppStatusFilter>>,
     channel_version: Option<String>,
-    holoport_version: Option<String>,
+    hpos_version: Option<String>,
 }
 
 impl Stats {
@@ -37,7 +37,7 @@ impl Stats {
             timestamp: None,
             hpos_app_list: get_hpos_app_health().await,
             channel_version: get_holo_nixpkgs_channel_version(),
-            holoport_version: get_holo_nixpkgs_version(),
+            hpos_version: get_holo_nixpkgs_version(),
         }
     }
 
