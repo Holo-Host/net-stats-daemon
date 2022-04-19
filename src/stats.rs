@@ -35,7 +35,7 @@ impl Stats {
             wan_ip: wrap(get_wan_ip()),
             holoport_id: Some(pubkey_base36.to_owned()),
             timestamp: None,
-            hpos_app_list: get_hpos_app_health().await,
+            hpos_app_list: get_hpos_app_health(None).await,
             channel_version: get_holo_nixpkgs_channel_version(),
             hpos_version: get_hpos_nixpkgs_version(),
         }
@@ -48,12 +48,14 @@ impl Stats {
 
 type ExecResult = (&'static str, PopenResult<CaptureData>);
 
-async fn get_hpos_app_health() -> Option<HashMap<InstalledAppId, AppStatusFilter>> {
-    match app_health::get_hpos_app_health().await {
+async fn get_hpos_app_health(
+    admin_port: Option<u16>,
+) -> Option<HashMap<InstalledAppId, AppStatusFilter>> {
+    match app_health::get_hpos_app_health(admin_port).await {
         Ok(data) => Some(data),
         Err(e) => {
-            warn!("Failed when calling `get_hpos_app_health`: {:?}", e);
-            return None;
+            warn!("\nFailed when calling `get_hpos_app_health`: {:?}", e);
+            None
         }
     }
 }
@@ -132,7 +134,7 @@ fn get_holo_nixpkgs_channel_version() -> Option<String> {
             .map_err(|e| {
                 warn!(
                     "Failed(`{}`) while instantiating `<holo-nixpkgs/.git-version>`: {e:?}",
-                    stringify!(get_holo_nixpkgs_channel_version) 
+                    stringify!(get_holo_nixpkgs_channel_version)
                 )
             })
             .ok()
@@ -178,4 +180,37 @@ fn wrap(res: ExecResult) -> Option<String> {
 /// Parses String looking for false or true
 fn string_2_bool(val: Option<String>) -> Option<bool> {
     val.and_then(|str| str.trim().parse::<bool>().ok())
+}
+
+#[cfg(test)]
+mod test {
+    use holochain::sweettest::SweetConductor;
+    use test_case::test_case;
+
+    #[test_case(true ; "when a port is provided for ws connection")]
+    #[test_case(false ; "when a port is NOT provided for ws connection")]
+    #[tokio::test(flavor = "multi_thread")]
+    async fn hpos_app_list_result(should_ws_connect: bool) {
+        let mut admin_port: Option<u16> = None;
+        if should_ws_connect {
+            let conductor = SweetConductor::from_standard_config().await;
+            admin_port = conductor.get_arbitrary_admin_websocket_port();
+        }
+
+        let mut error: bool = false;
+        if let Err(_) = super::app_health::get_hpos_app_health(admin_port).await {
+            error = true;
+        }
+
+        match super::get_hpos_app_health(admin_port).await {
+            Some(data) => {
+                assert_eq!(error, false);
+                assert_eq!(data.len(), 0);
+                assert_eq!(should_ws_connect, true);
+            }
+            None => {
+                assert_eq!(error, true);
+            }
+        };
+    }
 }
