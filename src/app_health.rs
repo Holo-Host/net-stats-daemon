@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Context, Result};
-use holochain::conductor::api::{AppStatusFilter, InstalledAppInfoStatus};
+use holochain::conductor::api::{AppInfoStatus, AppStatusFilter};
 use holochain_types::app::InstalledAppId;
 use std::collections::HashMap;
 
@@ -16,9 +16,9 @@ pub async fn get_hpos_app_health() -> Result<HashMap<InstalledAppId, AppStatusFi
     match admin_websocket.list_apps(None).await {
         Ok(hpos_happs) => hpos_happs.iter().for_each(|happ| {
             let happ_status = match &happ.status {
-                InstalledAppInfoStatus::Paused { .. } => AppStatusFilter::Paused,
-                InstalledAppInfoStatus::Disabled { .. } => AppStatusFilter::Disabled,
-                InstalledAppInfoStatus::Running => AppStatusFilter::Running,
+                AppInfoStatus::Paused { .. } => AppStatusFilter::Paused,
+                AppInfoStatus::Disabled { .. } => AppStatusFilter::Disabled,
+                AppInfoStatus::Running => AppStatusFilter::Running,
             };
             hpos_happ_health_map.insert(happ.installed_app_id.clone(), happ_status);
         }),
