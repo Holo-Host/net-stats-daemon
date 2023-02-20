@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Context, Result};
-use holochain::conductor::api::{AdminRequest, AdminResponse, AppStatusFilter, InstalledAppInfo};
+use holochain::conductor::api::{AdminRequest, AdminResponse, AppInfo, AppStatusFilter};
 
 use holochain_websocket::{connect, WebsocketConfig, WebsocketSender};
 use std::sync::Arc;
@@ -32,7 +32,7 @@ impl AdminWebsocket {
     pub async fn list_apps(
         &mut self,
         status_filter: Option<AppStatusFilter>,
-    ) -> Result<Vec<InstalledAppInfo>> {
+    ) -> Result<Vec<AppInfo>> {
         let response = self.send(AdminRequest::ListApps { status_filter }).await?;
         match response {
             AdminResponse::AppsListed(apps_infos) => Ok(apps_infos),
