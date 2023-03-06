@@ -1,5 +1,10 @@
 # net-stats-daemon
 
+## Ownership Info
+Codeowner: @peeech
+Consulted: @jettech
+Informed: None
+
 HPOS daemon for collecting statistics from holoport and PUSHing them to database via `match-service-api`.
 
 Currently script is collecting following information:
