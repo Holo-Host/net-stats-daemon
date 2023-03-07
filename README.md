@@ -2,7 +2,7 @@
 
 ## Ownership Info
 Codeowner: @peeech
-Consulted: @jettech
+Consulted: @jetttech
 Informed: None
 
 HPOS daemon for collecting statistics from holoport and PUSHing them to database via `match-service-api`.
