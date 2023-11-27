@@ -29,10 +29,10 @@ Code of binary [here](https://github.com/Holo-Host/net-stats-daemon).
 ```robotframework=
 Retrieve pub-priv keypair from seed in hpos config file
 Collect payload
-  holo_network = nixos-option system.holoNetwork | sed -n '2 p' | tr -d \"
+  holo_network = nix --extra-experimental-features 'nix-command' eval -f '<nixpkgs/nixos>' config.system.hpos.target --raw
   channel = nix-channel --list | grep holo-nixpkgs | cut -d '/' -f 7
-  holoport_model = nixos-option system.hpos.target 2>/dev/null | sed -n '2 p' | tr -d \"
-  ssh_status = echo $(nixos-option profiles.development.enabl 2>/dev/null | sed -n '2 p' | grep true || echo "false")
+  holoport_model = nix --extra-experimental-features 'nix-command' eval -f '<nixpkgs/nixos>' config.system.hpos.target --raw
+  ssh_status = nix --extra-experimental-features 'nix-command' eval -f '<nixpkgs/nixos>' config.profiles.development.enable
   zt_ip = zerotier-cli listnetworks | sed -n '2 p' | awk -F ' ' '{print $NF}' | awk -F ',' '{print $NF}' | awk -F '/' '{print $1}'
   wan_ip = curl https://ipecho.net/plain
   holoport_id_base36 = pub.keypair.into_base36()
