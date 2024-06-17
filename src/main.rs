@@ -3,7 +3,6 @@ mod keypair;
 pub mod stats;
 
 use anyhow::{Context, Result};
-use env_logger;
 use hpos_hc_connect::{holo_config::ADMIN_PORT, AdminWebsocket};
 use keypair::Keys;
 use log::{debug, info};
@@ -17,8 +16,8 @@ async fn main() -> Result<()> {
     let hpos_key = Keys::new().await?;
 
     let mut admin_ws = AdminWebsocket::connect(ADMIN_PORT)
-    .await
-    .context("Failed to connect to the holochain admin interface.")?;
+        .await
+        .context("Failed to connect to the holochain admin interface.")?;
 
     info!("Collecting payload from holoport");
     let payload = Stats::new(&hpos_key.pubkey_base36, &mut admin_ws).await;

@@ -4,7 +4,6 @@ use base64::encode_config;
 use ed25519_dalek::*;
 use hpos_config_core::{public_key::to_base36_id, Config};
 use hpos_config_seed_bundle_explorer::holoport_key;
-use serde_json;
 use std::env;
 use std::fs::File;
 
@@ -45,7 +44,11 @@ async fn keypair_from_config() -> Result<SigningKey> {
     let config_file =
         File::open(&config_path).context(format!("Failed to open config file {}", config_path))?;
 
-    let config: Config = serde_json::from_reader(config_file).context(format!("Failed to read config from file {}", &config_path))?;
+    let config: Config = serde_json::from_reader(config_file)
+        .context(format!("Failed to read config from file {}", &config_path))?;
 
-    holoport_key(&config, Some(password)).await.context(format!("Failed to obtain holoport signing key from file {}", config_path))
+    holoport_key(&config, Some(password)).await.context(format!(
+        "Failed to obtain holoport signing key from file {}",
+        config_path
+    ))
 }

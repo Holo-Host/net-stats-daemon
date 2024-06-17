@@ -1,11 +1,11 @@
 use anyhow::{Context, Result};
+use holochain_conductor_api::AppStatusFilter;
 use holochain_types::app::InstalledAppId;
 use hpos_hc_connect::AdminWebsocket;
 use log::warn;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
 use subprocess::{CaptureData, Exec, Result as PopenResult};
-use holochain_conductor_api::AppStatusFilter;
 
 use super::app_health;
 
@@ -49,12 +49,14 @@ impl Stats {
 
 type ExecResult = (&'static str, PopenResult<CaptureData>);
 
-async fn get_hpos_app_health(admin_ws: &mut AdminWebsocket) -> Option<HashMap<InstalledAppId, AppStatusFilter>> {
+async fn get_hpos_app_health(
+    admin_ws: &mut AdminWebsocket,
+) -> Option<HashMap<InstalledAppId, AppStatusFilter>> {
     match app_health::get_hpos_app_health(admin_ws).await {
         Ok(data) => Some(data),
         Err(e) => {
             warn!("Failed when calling `get_hpos_app_health`: {:?}", e);
-            return None;
+            None
         }
     }
 }
@@ -133,7 +135,7 @@ fn get_holo_nixpkgs_channel_version() -> Option<String> {
             .map_err(|e| {
                 warn!(
                     "Failed(`{}`) while instantiating `<holo-nixpkgs/.git-version>`: {e:?}",
-                    stringify!(get_holo_nixpkgs_channel_version) 
+                    stringify!(get_holo_nixpkgs_channel_version)
                 )
             })
             .ok()
