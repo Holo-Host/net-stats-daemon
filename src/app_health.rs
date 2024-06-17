@@ -1,5 +1,4 @@
 use anyhow::{anyhow, Context, Result};
-use holochain::conductor::api::{AppInfoStatus, AppStatusFilter};
 use holochain_types::app::InstalledAppId;
 use std::collections::HashMap;
 

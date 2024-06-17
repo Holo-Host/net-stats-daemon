@@ -1,5 +1,4 @@
 use anyhow::{Context, Result};
-use holochain::conductor::api::AppStatusFilter;
 use holochain_types::app::InstalledAppId;
 use log::warn;
 use serde::{Deserialize, Serialize};
