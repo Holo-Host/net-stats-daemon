@@ -3,19 +3,20 @@ use anyhow::{Context, Result};
 use base64::encode_config;
 use ed25519_dalek::*;
 use hpos_config_core::{public_key::to_base36_id, Config};
+use hpos_config_seed_bundle_explorer::holoport_key;
 use serde_json;
 use std::env;
 use std::fs::File;
 
 pub struct Keys {
-    keypair: Keypair,
+    keypair: SigningKey,
     pub pubkey_base36: String,
 }
 
 impl Keys {
     pub async fn new() -> Result<Self> {
         let keypair = keypair_from_config().await?;
-        let pubkey_base36 = to_base36_id(&keypair.public);
+        let pubkey_base36 = to_base36_id(&keypair.verifying_key());
         Ok(Self {
             keypair,
             pubkey_base36,
@@ -34,7 +35,7 @@ impl Keys {
     }
 }
 
-async fn keypair_from_config() -> Result<Keypair> {
+async fn keypair_from_config() -> Result<SigningKey> {
     let config_path =
         env::var("HPOS_CONFIG_PATH").context("Cannot read HPOS_CONFIG_PATH from env var")?;
 
@@ -44,18 +45,7 @@ async fn keypair_from_config() -> Result<Keypair> {
     let config_file =
         File::open(&config_path).context(format!("Failed to open config file {}", config_path))?;
 
-    match serde_json::from_reader(config_file)? {
-        Config::V1 { seed, .. } => Keypair::from_bytes(&seed).context(format!(
-            "Unable to read seed in config V1 file {}",
-            config_path
-        )),
-        Config::V2 { device_bundle, .. } => {
-            hpos_config_seed_bundle_explorer::unlock(&device_bundle, Some(password))
-                .await
-                .context(format!(
-                    "Unable to unlock the device bundle from {}",
-                    config_path
-                ))
-        }
-    }
+    let config: Config = serde_json::from_reader(config_file).context(format!("Failed to read config from file {}", &config_path))?;
+
+    holoport_key(&config, Some(password)).await.context(format!("Failed to obtain holoport signing key from file {}", config_path))
 }

@@ -1,23 +1,19 @@
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Result};
 use holochain_types::app::InstalledAppId;
 use std::collections::HashMap;
+use holochain_conductor_api::{AppInfoStatus, AppStatusFilter};
 
-use super::websocket::AdminWebsocket;
+use hpos_hc_connect::AdminWebsocket;
 
-const ADMIN_PORT: u16 = 4444;
-
-pub async fn get_hpos_app_health() -> Result<HashMap<InstalledAppId, AppStatusFilter>> {
-    let mut admin_websocket = AdminWebsocket::connect(ADMIN_PORT)
-        .await
-        .context("Failed to connect to the holochain admin interface.")?;
-
+pub async fn get_hpos_app_health(admin_ws: &mut AdminWebsocket) -> Result<HashMap<InstalledAppId, AppStatusFilter>> {
     let mut hpos_happ_health_map = HashMap::new();
-    match admin_websocket.list_apps(None).await {
+    match admin_ws.list_apps(None).await {
         Ok(hpos_happs) => hpos_happs.iter().for_each(|happ| {
             let happ_status = match &happ.status {
                 AppInfoStatus::Paused { .. } => AppStatusFilter::Paused,
                 AppInfoStatus::Disabled { .. } => AppStatusFilter::Disabled,
                 AppInfoStatus::Running => AppStatusFilter::Running,
+                AppInfoStatus::AwaitingMemproofs => AppStatusFilter::Enabled
             };
             hpos_happ_health_map.insert(happ.installed_app_id.clone(), happ_status);
         }),

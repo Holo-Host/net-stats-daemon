@@ -1,9 +1,11 @@
 use anyhow::{Context, Result};
 use holochain_types::app::InstalledAppId;
+use hpos_hc_connect::AdminWebsocket;
 use log::warn;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
 use subprocess::{CaptureData, Exec, Result as PopenResult};
+use holochain_conductor_api::AppStatusFilter;
 
 use super::app_health;
 
@@ -24,7 +26,7 @@ pub struct Stats {
 }
 
 impl Stats {
-    pub async fn new(pubkey_base36: &str) -> Self {
+    pub async fn new(pubkey_base36: &str, admin_ws: &mut AdminWebsocket) -> Self {
         Self {
             holo_network: wrap(get_network()),
             channel: wrap(get_channel()),
@@ -34,7 +36,7 @@ impl Stats {
             wan_ip: wrap(get_wan_ip()),
             holoport_id: Some(pubkey_base36.to_owned()),
             timestamp: None,
-            hpos_app_list: get_hpos_app_health().await,
+            hpos_app_list: get_hpos_app_health(admin_ws).await,
             channel_version: get_holo_nixpkgs_channel_version(),
             hpos_version: get_hpos_nixpkgs_version(),
         }
@@ -47,8 +49,8 @@ impl Stats {
 
 type ExecResult = (&'static str, PopenResult<CaptureData>);
 
-async fn get_hpos_app_health() -> Option<HashMap<InstalledAppId, AppStatusFilter>> {
-    match app_health::get_hpos_app_health().await {
+async fn get_hpos_app_health(admin_ws: &mut AdminWebsocket) -> Option<HashMap<InstalledAppId, AppStatusFilter>> {
+    match app_health::get_hpos_app_health(admin_ws).await {
         Ok(data) => Some(data),
         Err(e) => {
             warn!("Failed when calling `get_hpos_app_health`: {:?}", e);

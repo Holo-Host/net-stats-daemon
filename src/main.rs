@@ -1,10 +1,10 @@
 pub mod app_health;
 mod keypair;
 pub mod stats;
-pub mod websocket;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use env_logger;
+use hpos_hc_connect::{holo_config::ADMIN_PORT, AdminWebsocket};
 use keypair::Keys;
 use log::{debug, info};
 use reqwest::Client;
@@ -16,8 +16,12 @@ async fn main() -> Result<()> {
 
     let hpos_key = Keys::new().await?;
 
+    let mut admin_ws = AdminWebsocket::connect(ADMIN_PORT)
+    .await
+    .context("Failed to connect to the holochain admin interface.")?;
+
     info!("Collecting payload from holoport");
-    let payload = Stats::new(&hpos_key.pubkey_base36).await;
+    let payload = Stats::new(&hpos_key.pubkey_base36, &mut admin_ws).await;
     debug!("Payload: '{:?}'", &payload);
 
     let signature = hpos_key.sign(&payload).await?;
