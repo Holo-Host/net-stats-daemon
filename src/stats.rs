@@ -64,7 +64,7 @@ async fn get_hpos_app_health(
 fn get_network() -> ExecResult {
     (
         "holo_network",
-        (Exec::shell("nixos-option system.holoNetwork") | Exec::shell("sed -n '2 p'")).capture(),
+        (Exec::shell("nix --extra-experimental-features 'nix-command' eval -f '<nixpkgs/nixos>' config.system.holoNetwork --raw 2> /dev/null")).capture(),
     )
 }
 
@@ -81,7 +81,7 @@ fn get_channel() -> ExecResult {
 fn get_holoport_model() -> ExecResult {
     (
         "holoport_model",
-        (Exec::shell("nixos-option system.hpos.target 2>/dev/null") | Exec::shell("sed -n '2 p'"))
+        (Exec::shell("nix --extra-experimental-features 'nix-command' eval -f '<nixpkgs/nixos>' config.system.hpos.target --raw 2> /dev/null"))
             .capture(),
     )
 }
@@ -89,9 +89,7 @@ fn get_holoport_model() -> ExecResult {
 fn get_ssh_status() -> ExecResult {
     (
         "ssh_status",
-        (Exec::shell("nixos-option profiles.development.enable 2>/dev/null")
-            | Exec::shell("sed -n '2 p'")
-            | Exec::shell("grep true || echo 'false'"))
+        (Exec::shell("nix --extra-experimental-features 'nix-command' eval -f '<nixpkgs/nixos>' config.profiles.development.enable 2> /dev/null"))
         .capture(),
     )
 }
