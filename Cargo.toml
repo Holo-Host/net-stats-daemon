@@ -15,8 +15,10 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 subprocess = "0.2.8"
 tokio = { version = "1.12.0", features = ["rt-multi-thread", "macros"] }
-holochain_types = "0.4.0-dev.2"
-holochain_conductor_api = "0.4.0-dev.2"
+holochain_types = "=0.4.0-dev.11"
+holochain_conductor_api = "=0.4.0-dev.11"
+# This is only here to force dependencies to pull in a compatible version
+holochain_zome_types = "=0.4.0-dev.9"
 url = "2.2"
 hpos-config-core = { git = "https://github.com/holo-host/hpos-config.git", rev = "c17067b6a4214f9646316fa681651b73c72bf7e1" }
 hpos-config-seed-bundle-explorer = { git = "https://github.com/holo-host/hpos-config.git", rev = "c17067b6a4214f9646316fa681651b73c72bf7e1" }
