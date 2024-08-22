@@ -15,11 +15,9 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 subprocess = "0.2.8"
 tokio = { version = "1.12.0", features = ["rt-multi-thread", "macros"] }
-holochain_types = "=0.4.0-dev.11"
-holochain_conductor_api = "=0.4.0-dev.11"
-# This is only here to force dependencies to pull in a compatible version
-holochain_zome_types = "=0.4.0-dev.9"
+holochain_types = "=0.4.0-dev.18"
+holochain_conductor_api = "=0.4.0-dev.18"
 url = "2.2"
-hpos-config-core = { git = "https://github.com/holo-host/hpos-config.git", rev = "86411bdaabe7061a4b150d36c062fddc2c6c74cc" }
-hpos-config-seed-bundle-explorer = { git = "https://github.com/holo-host/hpos-config.git", rev = "86411bdaabe7061a4b150d36c062fddc2c6c74cc" }
-hpos_hc_connect = { git = "https://github.com/holo-host/hpos-service-crates.git", rev = "256a8c41623baf2fdb5b8241b85b2ba02d1a3f84" }
+hpos-config-core = { git = "https://github.com/holo-host/hpos-config.git", rev = "77d740c83a02e322e670e360eb450076b593b328" }
+hpos-config-seed-bundle-explorer = { git = "https://github.com/holo-host/hpos-config.git", rev = "77d740c83a02e322e670e360eb450076b593b328" }
+hpos_hc_connect = { git = "https://github.com/holo-host/hpos-service-crates.git", rev = "b128ddf45a80954917dd3b8713b7f2ae666e3613" }

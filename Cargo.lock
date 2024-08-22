@@ -1821,9 +1821,9 @@ dependencies = [
 
 [[package]]
 name = "holochain_conductor_api"
-version = "0.4.0-dev.11"
+version = "0.4.0-dev.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "79751caf273d2ae13e74c00339023957af6c6e99c2845838d657cc68f95923d7"
+checksum = "ea9c7aaa2e3cd5e10192b35bd30aa9032b41349f56d6fb324828495596a3a627"
 dependencies = [
  "derive_more",
  "holo_hash",
@@ -1863,9 +1863,9 @@ dependencies = [
 
 [[package]]
 name = "holochain_keystore"
-version = "0.4.0-dev.11"
+version = "0.4.0-dev.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e304d9c1f731288cc7088a2acc159dbd0dac683ac6dd8575a53a0e26e3f5a7d9"
+checksum = "f303489615e9e501b354ffe42ee0a2097357e7606f685cd40cb778a8b01f6a61"
 dependencies = [
  "base64 0.22.1",
  "derive_more",
@@ -1939,9 +1939,9 @@ dependencies = [
 
 [[package]]
 name = "holochain_sqlite"
-version = "0.4.0-dev.11"
+version = "0.4.0-dev.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94b13b1d64248de2657ef90dcc579ce5c1984e21123d40b8d9b42fb907315cec"
+checksum = "c16598bee58cfd58ae6d6e07d5f79f840f11db507b0e436bbd46ef19d2a4c72c"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2011,9 +2011,9 @@ dependencies = [
 
 [[package]]
 name = "holochain_types"
-version = "0.4.0-dev.11"
+version = "0.4.0-dev.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "868daeab948d21f2bf979491ab2839d38af87ca2f9780ff945c640173abf24fd"
+checksum = "1ea58298b002ecbd20b5160b19516604e393734ecc1952594ac76162ffcfcf8d"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2106,9 +2106,9 @@ dependencies = [
 
 [[package]]
 name = "holochain_websocket"
-version = "0.4.0-dev.11"
+version = "0.4.0-dev.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3dedab66701398f8354dcba051ca05eecdffa76d80863938042899799ea29baf"
+checksum = "269186f9ba9357be566b86d94bfc32b534fbe76bf42ae75ca991796ce70426b8"
 dependencies = [
  "async-trait",
  "futures",
@@ -2123,9 +2123,9 @@ dependencies = [
 
 [[package]]
 name = "holochain_zome_types"
-version = "0.4.0-dev.9"
+version = "0.4.0-dev.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "03b030ef01ef923c284f1a57638c8a44adbb60f39c75dc424988c6a890cda198"
+checksum = "71794e55ee4a1d0315e0963c6b5f78a6f97b9ce28de211fed50d37efd284beb2"
 dependencies = [
  "derive_builder 0.20.0",
  "derive_more",
@@ -2176,7 +2176,7 @@ dependencies = [
 [[package]]
 name = "hpos-config-core"
 version = "0.2.1"
-source = "git+https://github.com/holo-host/hpos-config.git?rev=86411bdaabe7061a4b150d36c062fddc2c6c74cc#86411bdaabe7061a4b150d36c062fddc2c6c74cc"
+source = "git+https://github.com/holo-host/hpos-config.git?rev=77d740c83a02e322e670e360eb450076b593b328#77d740c83a02e322e670e360eb450076b593b328"
 dependencies = [
  "argon2min",
  "arrayref",
@@ -2194,7 +2194,7 @@ dependencies = [
 [[package]]
 name = "hpos-config-seed-bundle-explorer"
 version = "0.2.1"
-source = "git+https://github.com/holo-host/hpos-config.git?rev=86411bdaabe7061a4b150d36c062fddc2c6c74cc#86411bdaabe7061a4b150d36c062fddc2c6c74cc"
+source = "git+https://github.com/holo-host/hpos-config.git?rev=77d740c83a02e322e670e360eb450076b593b328#77d740c83a02e322e670e360eb450076b593b328"
 dependencies = [
  "base36",
  "base64 0.13.1",
@@ -2211,7 +2211,7 @@ dependencies = [
 [[package]]
 name = "hpos_hc_connect"
 version = "0.1.0"
-source = "git+https://github.com/holo-host/hpos-service-crates.git?rev=256a8c41623baf2fdb5b8241b85b2ba02d1a3f84#256a8c41623baf2fdb5b8241b85b2ba02d1a3f84"
+source = "git+https://github.com/holo-host/hpos-service-crates.git?rev=b128ddf45a80954917dd3b8713b7f2ae666e3613#b128ddf45a80954917dd3b8713b7f2ae666e3613"
 dependencies = [
  "again",
  "anyhow",
@@ -2230,6 +2230,7 @@ dependencies = [
  "isahc",
  "lair_keystore_api",
  "lazy_static",
+ "log",
  "mr_bundle",
  "reqwest 0.12.4",
  "rmp-serde",
@@ -3227,7 +3228,6 @@ dependencies = [
  "env_logger 0.9.3",
  "holochain_conductor_api",
  "holochain_types",
- "holochain_zome_types",
  "hpos-config-core",
  "hpos-config-seed-bundle-explorer",
  "hpos_hc_connect",
